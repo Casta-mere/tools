@@ -40,7 +40,7 @@ Portal users are stored in `companyDB/PermissionUsers` (note: capital P).
 ### Command to run
 
 ```
-node /Users/wangxugang/Dev/tools/mongo/query.js --db companyDB --collection PermissionUsers --filter '<json>'
+node {{REPO_ROOT}}/mongo/query.js --db companyDB --collection PermissionUsers --filter '<json>'
 ```
 
 ### After fetching

@@ -7,7 +7,7 @@ description: Update MongoDB documents with mandatory preview and confirmation
 
 The user invoked `/mongo-update` with the following arguments: $ARGUMENTS
 
-Help the user update documents in MongoDB using the script at `/Users/wangxugang/Dev/tools/mongo/update.js`.
+Help the user update documents in MongoDB using the script at `{{REPO_ROOT}}/mongo/update.js`.
 
 ### SAFETY RULES — follow these strictly
 
@@ -21,7 +21,7 @@ Help the user update documents in MongoDB using the script at `/Users/wangxugang
 ### Available command
 
 ```
-node /Users/wangxugang/Dev/tools/mongo/update.js [--prod] --db <database> --collection <collection> --filter '<json>' --update '<json>' [--limit <n>] [--dry-run]
+node {{REPO_ROOT}}/mongo/update.js [--prod] --db <database> --collection <collection> --filter '<json>' --update '<json>' [--limit <n>] [--dry-run]
 ```
 
 - `--dry-run` — preview matching documents without making changes
@@ -34,7 +34,7 @@ node /Users/wangxugang/Dev/tools/mongo/update.js [--prod] --db <database> --coll
 
 **Step 2 — Dry run:** Run the command with `--dry-run` to preview matching documents:
 ```
-node /Users/wangxugang/Dev/tools/mongo/update.js --db <db> --collection <col> --filter '<filter>' --update '<update>' --dry-run
+node {{REPO_ROOT}}/mongo/update.js --db <db> --collection <col> --filter '<filter>' --update '<update>' --dry-run
 ```
 Show the user the matching documents and the total count.
 
@@ -54,12 +54,12 @@ For `--prod`, add a prominent warning:
 
 **Step 4 — Execute:** Only after explicit confirmation, run without `--dry-run`:
 ```
-node /Users/wangxugang/Dev/tools/mongo/update.js --db <db> --collection <col> --filter '<filter>' --update '<update>'
+node {{REPO_ROOT}}/mongo/update.js --db <db> --collection <col> --filter '<filter>' --update '<update>'
 ```
 
 **Step 5 — Verify:** Re-query the affected documents to show the user the updated state:
 ```
-node /Users/wangxugang/Dev/tools/mongo/query.js --db <db> --collection <col> --filter '<filter>'
+node {{REPO_ROOT}}/mongo/query.js --db <db> --collection <col> --filter '<filter>'
 ```
 
 ### Flags
