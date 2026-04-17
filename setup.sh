@@ -43,3 +43,21 @@ for dir in firebase grafana mongo; do
     (cd "$REPO_DIR/$dir" && npm install)
   fi
 done
+
+# Remind user about required credentials
+echo ""
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "Setup complete! Before using the tools, configure:"
+echo ""
+echo "  grafana/  → copy grafana/.env.template → grafana/.env"
+echo "              fill in GRAFANA_URL_DEV/PROD and GRAFANA_TOKEN_DEV/PROD"
+echo ""
+echo "  mongo/    → copy mongo/.env.template → mongo/.env"
+echo "              fill in MONGO_URL_DEV and MONGO_URL_PROD"
+echo ""
+echo "  firebase/ → add firebaseKey-dev.json and firebaseKey-prod.json"
+echo "              (Firebase service account JSON files)"
+echo ""
+echo "  portal/   → ensure GitHub CLI is installed and authenticated:"
+echo "              brew install gh && gh auth login"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
