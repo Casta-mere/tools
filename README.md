@@ -29,7 +29,7 @@ Add service account JSON files to `firebase/`:
 - `firebaseKey-dev.json` — dev Firebase service account
 - `firebaseKey-prod.json` — prod Firebase service account
 
-### `portal/`
+### `hrm/`
 Requires GitHub CLI installed and authenticated:
 ```sh
 brew install gh && gh auth login
@@ -52,7 +52,7 @@ MongoDB utilities for querying and updating data:
 - **query.js** — Run find queries against a collection
 - **update.js** — Preview and apply MongoDB updates safely
 
-## Portal (`portal/`)
+## HRM (`hrm/`)
 
 HRM version lookup utilities:
 

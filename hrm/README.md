@@ -1,4 +1,4 @@
-# Portal (`portal/`)
+# HRM (`hrm/`)
 
 Fetch HRM-related versions from:
 

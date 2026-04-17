@@ -7,17 +7,17 @@ description: Look up HRM frontend and backend versions from portal and gitops fo
 
 The user invoked `/hrm-version` with the following arguments: $ARGUMENTS
 
-Use `{{REPO_ROOT}}/portal/hrmVersion.js` to fetch HRM versions.
+Use `{{REPO_ROOT}}/hrm/hrmVersion.js` to fetch HRM versions.
 
 ### Execute directory
 
-Run commands from `{{REPO_ROOT}}/portal`.
+Run commands from `{{REPO_ROOT}}/hrm`.
 
 ### Command
 
 ```bash
-node {{REPO_ROOT}}/portal/hrmVersion.js [mf-hrm-portal hrm-permission hrm-actionguard hr-backend]
-node {{REPO_ROOT}}/portal/hrmVersion.js --prod [mf-hrm-portal hrm-permission hrm-actionguard hr-backend]
+node {{REPO_ROOT}}/hrm/hrmVersion.js [mf-hrm-portal hrm-permission hrm-actionguard hr-backend]
+node {{REPO_ROOT}}/hrm/hrmVersion.js --prod [mf-hrm-portal hrm-permission hrm-actionguard hr-backend]
 ```
 
 ### Behavior
