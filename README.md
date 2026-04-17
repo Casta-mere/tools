@@ -51,6 +51,7 @@ MongoDB utilities for querying and updating data:
 - **index.js** — List available databases
 - **query.js** — Run find queries against a collection
 - **update.js** — Preview and apply MongoDB updates safely
+- **portal-user.js** — Resolve a portal user's full permission chain (Users → PermissionUsers → PermissionAssignments → PermissionSets)
 
 ## HRM (`hrm/`)
 
@@ -68,8 +69,8 @@ Grafana connection utilities:
 
 - **hrm-version** — Look up HRM frontend and backend versions for both dev and prod
 - **mongo** — Query MongoDB databases and collections
-- **mongo-update** — Update MongoDB documents with preview and confirmation
-- **portal-user** — Look up portal users by email, userId, or businessId
+- **mongo-update** — Update MongoDB documents with preview and confirmation; includes permission-aware workflow for portal users
+- **portal-user** — Look up portal users with full permission resolution (Users → PermissionUsers → PermissionAssignments → PermissionSets)
 - **grafana** — Connect to Grafana and query Grafana HTTP APIs
 
 ## Custom skills (`.claude/skills/`)

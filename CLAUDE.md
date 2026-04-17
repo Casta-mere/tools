@@ -5,7 +5,7 @@ A collection of small utility tools.
 ## Structure
 
 - `firebase/` — Firebase Admin SDK utilities for user management
-- `mongo/` — MongoDB connection utilities and query runner
+- `mongo/` — MongoDB connection utilities, query runner, and portal-user permission resolver
 - `hrm/` — HRM version lookup utilities
 - `grafana/` — Grafana connectivity and API query utilities
 - `.claude/commands/` — Custom slash commands installed by `setup.sh`
@@ -16,8 +16,8 @@ A collection of small utility tools.
 
 - `hrm-version` — Look up HRM frontend and backend versions from portal and gitops for both dev and prod
 - `mongo` — Query MongoDB databases and collections
-- `mongo-update` — Update MongoDB documents with mandatory preview and confirmation
-- `portal-user` — Look up portal users in MongoDB by email, userId, or businessId
+- `mongo-update` — Update MongoDB documents with mandatory preview and confirmation; includes permission-aware workflow for portal users
+- `portal-user` — Look up portal users with full permission resolution (Users → PermissionUsers → PermissionAssignments → PermissionSets)
 - `grafana` — Connect to Grafana and query Grafana HTTP APIs
 
 ## Current skills
