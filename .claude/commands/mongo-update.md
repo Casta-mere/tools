@@ -66,3 +66,50 @@ node {{REPO_ROOT}}/mongo/query.js --db <db> --collection <col> --filter '<filter
 
 - Add `--prod` to any command to target production MongoDB instead of dev.
 - Add `--limit <n>` to cap the number of documents updated.
+
+---
+
+### Portal permission update workflow
+
+When the user wants to update a **portal user's permissions** (mentions "portal user", "permission", "team member", or references PermissionUsers/PermissionAssignments), follow this specialized workflow instead of the generic one above.
+
+**Step 1 — Resolve the user first:**
+```
+node {{REPO_ROOT}}/mongo/portal-user.js [--prod] --email <email>
+```
+(Or use `--userId`, `--permissionUserId`, etc. depending on what the user provides.)
+
+This shows the full permission chain: Users → PermissionUsers → PermissionAssignments → PermissionSets. Show the user the current state before any updates.
+
+**Step 2 — Determine what to update:**
+
+The permission data model has a strict update order:
+
+| What to update | Target collection | Notes |
+|---|---|---|
+| Permission grants/overrides | `PermissionAssignments.customPermissions` | Modern source of truth. Update this first. |
+| Permission set assignments | `PermissionAssignments.permissionSetIds` | Add/remove set references here. |
+| Legacy permission fields | `PermissionUsers.permissions` | Only if explicitly needed for backward compat. |
+| Profile fields (email, phone) | `PermissionUsers` | Non-permission fields are fine to update. |
+| Permission set definitions | `PermissionSets` | **NEVER modify through this workflow.** These are shared templates that affect all users assigned to them. Warn the user if they try. |
+
+**Step 3 — Execute updates in order:**
+
+1. **Update `PermissionAssignments` first** (if it exists):
+   - Filter: `{"userId": "<PermissionUsers._id>", "businessId": "<businessId>"}`
+   - Collection: `companyDB` → `PermissionAssignments`
+   - Follow the standard dry-run → confirm → execute flow.
+
+2. **Update `PermissionUsers` second** (if needed):
+   - Filter: `{"_id": {"$oid": "<PermissionUsers._id>"}}`
+   - Collection: `companyDB` → `PermissionUsers`
+   - Follow the standard dry-run → confirm → execute flow.
+
+3. If no `PermissionAssignment` exists for this user, warn the user that the legacy `PermissionUsers.permissions` path is being used and suggest creating an assignment instead.
+
+**Step 4 — Verify with resolver:**
+```
+node {{REPO_ROOT}}/mongo/portal-user.js [--prod] --email <email>
+```
+Show the updated permission chain to confirm the changes took effect.
+- Add `--limit <n>` to cap the number of documents updated.
