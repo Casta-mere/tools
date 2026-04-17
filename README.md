@@ -25,12 +25,19 @@ HRM version lookup utilities:
 
 - **hrmVersion.js** — Fetch HRM frontend and backend versions for dev or prod
 
+## Grafana (`grafana/`)
+
+Grafana connection utilities:
+
+- **connect.js** — Test Grafana connectivity and query Grafana HTTP APIs
+
 ## Custom commands (`.claude/commands/`)
 
 - **hrm-version** — Look up HRM frontend and backend versions for both dev and prod
 - **mongo** — Query MongoDB databases and collections
 - **mongo-update** — Update MongoDB documents with preview and confirmation
 - **portal-user** — Look up portal users by email, userId, or businessId
+- **grafana** — Connect to Grafana and query Grafana HTTP APIs
 
 ## Custom skills (`.claude/skills/`)
 

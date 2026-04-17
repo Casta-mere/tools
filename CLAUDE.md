@@ -7,6 +7,7 @@ A collection of small utility tools.
 - `firebase/` — Firebase Admin SDK utilities for user management
 - `mongo/` — MongoDB connection utilities and query runner
 - `portal/` — HRM version lookup utilities
+- `grafana/` — Grafana connectivity and API query utilities
 - `.claude/commands/` — Custom slash commands installed by `setup.sh`
 - `.claude/skills/` — Custom skills installed by `setup.sh`
 
@@ -16,6 +17,7 @@ A collection of small utility tools.
 - `mongo` — Query MongoDB databases and collections
 - `mongo-update` — Update MongoDB documents with mandatory preview and confirmation
 - `portal-user` — Look up portal users in MongoDB by email, userId, or businessId
+- `grafana` — Connect to Grafana and query Grafana HTTP APIs
 
 ## Current skills
 

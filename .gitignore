@@ -1,3 +1,5 @@
 firebaseKey*
 node_modules/
 **/.env
+output/
+.DS_Store
