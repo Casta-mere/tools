@@ -27,3 +27,19 @@ for file in "$SKILLS_SRC"/*.md; do
   sed "s|{{REPO_ROOT}}|$REPO_DIR|g" "$file" > "$dest"
   echo "Installed: skills/$name"
 done
+
+# Install npm dependencies for each tool
+echo ""
+if ! command -v npm &>/dev/null; then
+  echo "npm not found. Please install Node.js first:"
+  echo "  https://nodejs.org  or  brew install node"
+  exit 1
+fi
+
+echo "Installing npm dependencies..."
+for dir in firebase grafana mongo; do
+  if [ -f "$REPO_DIR/$dir/package.json" ]; then
+    echo "Running npm install in $dir/..."
+    (cd "$REPO_DIR/$dir" && npm install)
+  fi
+done
