@@ -1,87 +1,100 @@
 ---
 allowed-tools: Bash(node:*)
-description: Look up portal users in MongoDB (companyDB/PermissionUsers) by email, userId, or businessId
+description: Look up portal users with full permission resolution (Users → PermissionUsers → PermissionAssignments → PermissionSets)
 ---
 
 ## Your task
 
-Look up a portal user in MongoDB. The user is identified by: $ARGUMENTS
+Look up a portal user and resolve their full permission chain. The user is identified by: $ARGUMENTS
 
-Portal users are stored in `companyDB/PermissionUsers` (note: capital P).
-
-### Document shape
-
-```json
-{
-  "_id": "<ObjectId>",
-  "userId": "<Firebase UID>",
-  "businessId": "<businessId>",
-  "email": "<email>",
-  "phoneNo": "<phone or null>",
-  "permissions": [
-    {
-      "label": "<role label>",
-      "subject": "<subject>",
-      "actions": ["manage" | "read" | ...]
-    }
-  ]
-}
-```
+The resolver follows four MongoDB collections in `companyDB`:
+1. **Users** — base user profile (email, phone, displayName)
+2. **PermissionUsers** — links user to a business, holds legacy permissions
+3. **PermissionAssignments** — modern permission source: `customPermissions` + `permissionSetIds`
+4. **PermissionSets** — reusable permission templates (can be recursive)
 
 ### Lookup strategy
 
-- If `$ARGUMENTS` contains `@`, treat it as an email → filter `{"email": "<value>"}`.
-- If `$ARGUMENTS` is a 24-char hex string (MongoDB ObjectId), filter `{"businessId": "<value>"}` and use `--limit 100`.
-- If `$ARGUMENTS` looks like a Firebase UID (20–28 alphanumeric chars, mixed case), filter `{"userId": "<value>"}`.
-- If `$ARGUMENTS` mentions "business" followed by an ID, extract the ID and filter by `businessId`.
+- If `$ARGUMENTS` contains `@`, use `--email "<value>"`.
+- If `$ARGUMENTS` starts with `+` or is pure digits, use `--phone "<value>"`.
+- If `$ARGUMENTS` looks like a Firebase UID (20–28 alphanumeric chars, mixed case), use `--userId "<value>"`.
+- If `$ARGUMENTS` is a 24-char hex string, it's **ambiguous** (could be businessId or PermissionUsers._id):
+  - Default: treat as `--businessId "<value>"` (most common).
+  - If prefixed with `pu:` (e.g. `pu:6969979a3eb1b2cd81087326`), strip the prefix and use `--permissionUserId "<value>"`.
+- If `$ARGUMENTS` mentions "business" followed by an ID, extract the ID and use `--businessId`.
 - If `$ARGUMENTS` is ambiguous or empty, ask the user for an email, userId, or businessId.
 - Add `--prod` if the user specifies production.
 
 ### Command to run
 
 ```
-node {{REPO_ROOT}}/mongo/query.js --db companyDB --collection PermissionUsers --filter '<json>'
+node {{REPO_ROOT}}/mongo/portal-user.js [--prod] --email <email>
+node {{REPO_ROOT}}/mongo/portal-user.js [--prod] --phone <phone>
+node {{REPO_ROOT}}/mongo/portal-user.js [--prod] --userId <firebaseUid>
+node {{REPO_ROOT}}/mongo/portal-user.js [--prod] --permissionUserId <objectId>
+node {{REPO_ROOT}}/mongo/portal-user.js [--prod] --businessId <objectId> [--limit <n>]
 ```
 
 ### After fetching
 
-**For multiple results (businessId lookup):** render a summary table with one row per user:
+The resolver returns JSON with `results[]`, each containing `user`, `permissionUser`, `permissionAssignment`, `permissionSets`, `effectivePermissions`, `source`, and top-level `warnings[]`.
+
+**For a single result (email, phone, or userId lookup):** render a multi-section layout:
+
+```
+**Portal User: <email or displayName>**
+
+**Linked Documents:**
+
+| Collection | _id | Key Fields |
+|---|---|---|
+| Users | `<_id>` | displayName: "...", email: "...", phone: ... |
+| PermissionUsers | `<_id>` | businessId: `<id>`, legacy permissions: N |
+| PermissionAssignments | `<_id>` | custom permissions: N, permission sets: N |
+
+**Permission Sets:**
+
+| Name | _id | Permission Count | Nested Sets |
+|---|---|---|---|
+| Admin Role | `<_id>` | 12 | — |
+| Report Access | `<_id>` | 3 | 1 child set |
+
+**Effective Permissions (source: <source>):**
+
+| Label | Subject | Actions | Source |
+|---|---|---|---|
+| Restaurant Owner | `business::restaurant` | `manage` | permissionSet:Admin Role |
+| _(unlabeled)_ | `business::report::reports::abc123` | `read`, `create` | custom |
+| _(denied)_ | `business::report::reports::abc123` | `create` | custom (inverted) |
+```
+
+- Use `_(unlabeled)_` when the label field is empty or missing.
+- Use `_(denied)_` for inverted (denial) rules and note "(inverted)" in the Source column.
+- The `source` field at the top indicates the overall permission origin: `assignment+sets`, `sets`, `assignment`, `legacy(PermissionUsers.permissions)`, or `none`.
+
+**For multiple results (businessId lookup):** render a summary table:
 
 ```
 **N portal users for business `<businessId>`:**
 
-| # | Email | Phone | userId | Permissions | Notable Permissions |
-|---|---|---|---|---|---|
-| 1 | xugang@feedme.cc | — | `Bmc8vsNLGqZUIFRWe5wJLVdcyk73` | 2 | Restaurant Owner |
-| 2 | — | +60111111111 | `fWiCnTaNj5dDbviXcirae1MVrro1` | 6 | Owner, Team/Employee/Audit, Stock |
+| # | Email | Phone | Display Name | userId | Source | Effective Perms | Sets |
+|---|---|---|---|---|---|---|---|
+| 1 | xugang@feedme.cc | — | XuGang Wang | `Bmc8vs...k73` | assignment+sets | 6 | Test report |
+| 2 | — | +60111111111 | John | `fWiCn...ro1` | legacy | 4 | — |
 ```
 
-- Email: use `—` if null/empty
-- Phone: use `—` if null/empty
-- userId: wrap in backticks
-- Permissions: total count of entries in the `permissions` array
-- Notable Permissions: summarize the permission labels concisely (e.g. "Owner, Team/Employee/Audit, Reports"); skip unlabeled/technical subjects
+- Email/Phone: use `—` if null/empty
+- userId: wrap in backticks, truncate to first 6 + last 3 chars
+- Source: from the `source` field
+- Effective Perms: count of `effectivePermissions`
+- Sets: comma-separated permission set names, or `—` if none
 
-**For a single result (email or userId lookup):** render a two-section layout:
-
+**Warnings:** If the resolver returns any `warnings`, display them prominently:
 ```
-**Portal User: <email or userId>**
-
-| Field | Value |
-|---|---|
-| `_id` | `<value>` |
-| `userId` (Firebase UID) | `<value>` |
-| `businessId` | `<value>` |
-| `phoneNo` | <value or null> |
-
-**Permissions:**
-
-| Label | Subject | Actions |
-|---|---|---|
-| Restaurant Owner | `business::restaurant` | `manage` |
-| _(unlabeled)_ | `business::report::reports::undefined` | `manage`, `read`, `create` |
+⚠️ Warnings:
+- No Users document found; PermissionUsers found by email directly
 ```
 
-- Use `_(unlabeled)_` when the label field is empty or missing.
-
-If no document is found, say so clearly and suggest checking the country-specific DBs (e.g. `SG_companyDB`, `ID_companyDB`) with the same collection name.
+If no results are found, say so clearly and suggest:
+1. Checking country-specific DBs (e.g. `SG_companyDB`, `ID_companyDB`) by running with `--db SG_companyDB` etc.
+2. Trying a different identifier type.
