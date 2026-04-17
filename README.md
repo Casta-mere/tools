@@ -2,6 +2,39 @@
 
 A collection of small utility scripts.
 
+## Setup
+
+Run `./setup.sh` to install Claude commands, skills, and npm dependencies.
+
+Then configure credentials for each tool:
+
+### `grafana/`
+Copy `.env.template` to `.env` and fill in:
+| Variable | Description |
+|----------|-------------|
+| `GRAFANA_URL_DEV` | Dev Grafana base URL |
+| `GRAFANA_URL_PROD` | Prod Grafana base URL |
+| `GRAFANA_TOKEN_DEV` | Dev Grafana API token |
+| `GRAFANA_TOKEN_PROD` | Prod Grafana API token |
+
+### `mongo/`
+Copy `.env.template` to `.env` and fill in:
+| Variable | Description |
+|----------|-------------|
+| `MONGO_URL_DEV` | Dev MongoDB connection string |
+| `MONGO_URL_PROD` | Prod MongoDB connection string |
+
+### `firebase/`
+Add service account JSON files to `firebase/`:
+- `firebaseKey-dev.json` — dev Firebase service account
+- `firebaseKey-prod.json` — prod Firebase service account
+
+### `portal/`
+Requires GitHub CLI installed and authenticated:
+```sh
+brew install gh && gh auth login
+```
+
 ## Firebase (`firebase/`)
 
 Firebase Admin SDK utilities for user management:

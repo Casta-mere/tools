@@ -10,6 +10,7 @@ A collection of small utility tools.
 - `grafana/` — Grafana connectivity and API query utilities
 - `.claude/commands/` — Custom slash commands installed by `setup.sh`
 - `.claude/skills/` — Custom skills installed by `setup.sh`
+- `.claude/memory/` — Persistent memory for this repo (checked in, travels with the repo)
 
 ## Current commands
 
