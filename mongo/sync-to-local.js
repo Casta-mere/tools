@@ -90,10 +90,16 @@ if (isProd) {
   console.warn(`⚠  Syncing from PRODUCTION to LOCAL\n`);
 }
 
-sync(
-  dbName,
-  colsArg.split(",").map((c) => c.trim()),
-).catch((err) => {
+const collections = [...new Set(colsArg.split(",").map((c) => c.trim()).filter(Boolean))];
+
+if (collections.length === 0) {
+  console.error(
+    "No valid collections provided. Use --collections <col1,col2,...> with at least one non-empty collection name.",
+  );
+  process.exit(1);
+}
+
+sync(dbName, collections).catch((err) => {
   console.error("Error:", err.message);
   process.exit(1);
 });

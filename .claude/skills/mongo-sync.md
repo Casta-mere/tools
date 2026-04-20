@@ -1,6 +1,6 @@
 ---
 name: mongo-sync
-description: Copy and dump MongoDB collections from prod or dev to local — drop-and-replace sync workflow using mongo/sync-to-local.js and the --local flag
+description: Copy and dump MongoDB collections from prod or dev to local — drop-and-replace sync workflow using mongo/sync-to-local.js
 user_invocable: true
 ---
 

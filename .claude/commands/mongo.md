@@ -17,12 +17,12 @@ Based on the arguments (or absence of them), help the user query MongoDB using t
 
 **List databases** (already shown above in Context):
 ```
-node {{REPO_ROOT}}/mongo/index.js [--prod]
+node {{REPO_ROOT}}/mongo/index.js [--prod|--local]
 ```
 
 **Query a collection:**
 ```
-node {{REPO_ROOT}}/mongo/query.js [--prod] --db <database> --collection <collection> [--filter '<json>'] [--limit <n>]
+node {{REPO_ROOT}}/mongo/query.js [--prod|--local] --db <database> --collection <collection> [--filter '<json>'] [--limit <n>]
 ```
 
 ### How to respond
@@ -35,4 +35,5 @@ node {{REPO_ROOT}}/mongo/query.js [--prod] --db <database> --collection <collect
 ### Flags
 
 - Add `--prod` to any command to target the production MongoDB instead of dev.
+- Add `--local` to any command to target a local MongoDB instance instead of dev.
 - Default limit is 20 documents. Use `--limit` to override.

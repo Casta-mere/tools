@@ -18,7 +18,7 @@ Help the user sync MongoDB collections from DEV (or PROD) into their local Mongo
 1. **Direction is always SOURCE → LOCAL. Never sync local data to DEV or PROD.** If the user asks to push local data to dev or prod, refuse immediately and explain it is not supported.
 2. **Always confirm before syncing from PROD.** If the source is `--prod`, warn the user prominently and require explicit confirmation before running.
 3. **Remind the user that sync is destructive.** Each collection is dropped in LOCAL before being replaced. Make sure the user understands this.
-4. **Never guess collection names.** If the user hasn't specified collections, list available collections for the target database first, then ask which ones to sync.
+4. **Never guess collection names.** If the user hasn't specified collections, ask them to provide the exact collection names they want to sync.
 
 ### Tools available
 

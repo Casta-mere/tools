@@ -59,7 +59,7 @@ MongoDB utilities for querying and updating data:
 - **query.js** — Run find queries against a collection
 - **update.js** — Preview and apply MongoDB updates safely
 - **portal-user.js** — Resolve a portal user's full permission chain (Users → PermissionUsers → PermissionAssignments → PermissionSets)
-- **sync-to-local.js** — Copy collections from DEV to local MongoDB (drop & replace)
+- **sync-to-local.js** — Copy collections from DEV or PROD (`--prod`) to local MongoDB (drop & replace)
 
 ## HRM (`hrm/`)
 
