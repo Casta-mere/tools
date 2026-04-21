@@ -8,6 +8,7 @@ A collection of small utility tools.
 - `mongo/` — MongoDB connection utilities, query runner, and portal-user permission resolver
 - `hrm/` — HRM version lookup utilities
 - `grafana/` — Grafana connectivity and API query utilities
+- `data/` — Local-only data files (gitignored). Organised by tool: `data/mongo/`, `data/firebase/`, etc. Scripts that produce output files should write here.
 - `.claude/commands/` — Custom slash commands installed by `setup.sh`
 - `.claude/skills/` — Custom skills installed by `setup.sh`
 - `.claude/memory/` — Persistent memory for this repo (checked in, travels with the repo)
@@ -34,5 +35,6 @@ A collection of small utility tools.
 - Mongo scripts support `--prod` / `--local` flags to switch between dev/prod/local MongoDB URLs
 - Mongo connection URLs are stored in `mongo/.env` as `MONGO_URL_DEV`, `MONGO_URL_LOCAL`, and `MONGO_URL_PROD` (gitignored — never commit it)
 - Scripts are designed to work both as CLI tools and as importable Node.js modules
+- Output files (JSON backups, reports, query dumps) go in `data/<tool>/` — never write data files next to scripts
 - Custom `.claude/commands/*.md` and `.claude/skills/*.md` files should use `{{REPO_ROOT}}` in executable paths; `setup.sh` replaces it with the actual repo path during installation
 - When a new `.claude` skill or command is added or an existing one is modified and the user approves it, update both `README.md` and `CLAUDE.md` to keep repo documentation aligned
