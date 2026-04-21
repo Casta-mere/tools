@@ -41,7 +41,13 @@ async function runQuery({ db: dbName, collection: colName, filter, limit }) {
 }
 
 if (require.main === module) {
-  const args = process.argv.slice(2).filter((a) => a !== "--prod" && a !== "--local");
+  const rawArgs = process.argv.slice(2);
+  if (rawArgs.includes("--prod") && rawArgs.includes("--local")) {
+    console.error("Error: --prod and --local cannot be used together.");
+    printUsage();
+    process.exit(1);
+  }
+  const args = rawArgs.filter((a) => a !== "--prod" && a !== "--local");
 
   const dbName = getArg(args, "--db");
   const colName = getArg(args, "--collection");

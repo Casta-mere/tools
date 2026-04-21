@@ -59,7 +59,7 @@ async function sync(dbName, collections) {
     await localDb
       .collection(colName)
       .drop()
-      .catch(() => {});
+      .catch((err) => { if (err.code !== 26) throw err; });
     console.log("done");
 
     if (docs.length > 0) {
