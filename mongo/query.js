@@ -2,12 +2,13 @@
  * query.js — Run a find query from the CLI.
  *
  * Usage:
- *   node query.js [--prod] --db <database> --collection <collection> [--filter <json>] [--limit <n>]
+ *   node query.js [--prod|--local] --db <database> --collection <collection> [--filter <json>] [--limit <n>]
  *
  * Examples:
  *   node query.js --db myapp --collection users
  *   node query.js --db myapp --collection users --filter '{"role":"admin"}' --limit 5
  *   node query.js --prod --db myapp --collection orders --limit 10
+ *   node query.js --local --db myapp --collection users
  */
 
 const { getDb, disconnect } = require("./index");
@@ -19,7 +20,7 @@ function getArg(args, flag) {
 
 function printUsage() {
   console.log(
-    "Usage: node query.js [--prod] --db <database> --collection <collection> [--filter <json>] [--limit <n>]"
+    "Usage: node query.js [--prod|--local] --db <database> --collection <collection> [--filter <json>] [--limit <n>]"
   );
   console.log(
     'Example: node query.js --db myapp --collection users --filter \'{"role":"admin"}\' --limit 5'
@@ -40,7 +41,13 @@ async function runQuery({ db: dbName, collection: colName, filter, limit }) {
 }
 
 if (require.main === module) {
-  const args = process.argv.slice(2).filter((a) => a !== "--prod");
+  const rawArgs = process.argv.slice(2);
+  if (rawArgs.includes("--prod") && rawArgs.includes("--local")) {
+    console.error("Error: --prod and --local cannot be used together.");
+    printUsage();
+    process.exit(1);
+  }
+  const args = rawArgs.filter((a) => a !== "--prod" && a !== "--local");
 
   const dbName = getArg(args, "--db");
   const colName = getArg(args, "--collection");

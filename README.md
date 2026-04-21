@@ -9,6 +9,7 @@ Run `./setup.sh` to install Claude commands, skills, and npm dependencies.
 Then configure credentials for each tool:
 
 ### `grafana/`
+
 Copy `.env.template` to `.env` and fill in:
 | Variable | Description |
 |----------|-------------|
@@ -18,19 +19,25 @@ Copy `.env.template` to `.env` and fill in:
 | `GRAFANA_TOKEN_PROD` | Prod Grafana API token |
 
 ### `mongo/`
+
 Copy `.env.template` to `.env` and fill in:
 | Variable | Description |
 |----------|-------------|
 | `MONGO_URL_DEV` | Dev MongoDB connection string |
 | `MONGO_URL_PROD` | Prod MongoDB connection string |
+| `MONGO_URL_LOCAL` | Local MongoDB connection string (e.g. `mongodb://localhost:27017`) |
 
 ### `firebase/`
+
 Add service account JSON files to `firebase/`:
+
 - `firebaseKey-dev.json` — dev Firebase service account
 - `firebaseKey-prod.json` — prod Firebase service account
 
 ### `hrm/`
+
 Requires GitHub CLI installed and authenticated:
+
 ```sh
 brew install gh && gh auth login
 ```
@@ -52,6 +59,7 @@ MongoDB utilities for querying and updating data:
 - **query.js** — Run find queries against a collection
 - **update.js** — Preview and apply MongoDB updates safely
 - **portal-user.js** — Resolve a portal user's full permission chain (Users → PermissionUsers → PermissionAssignments → PermissionSets)
+- **sync-to-local.js** — Copy collections from DEV or PROD (`--prod`) to local MongoDB (drop & replace)
 
 ## HRM (`hrm/`)
 
@@ -72,10 +80,12 @@ Grafana connection utilities:
 - **mongo-update** — Update MongoDB documents with preview and confirmation; includes permission-aware workflow for portal users
 - **portal-user** — Look up portal users with full permission resolution (Users → PermissionUsers → PermissionAssignments → PermissionSets)
 - **grafana** — Connect to Grafana and query Grafana HTTP APIs
+- **mongo-sync** — Copy MongoDB collections from dev or prod to local with confirmation workflow
 
 ## Custom skills (`.claude/skills/`)
 
 - **firebase** — Firebase user management helpers for user lookup and updates
+- **mongo-sync** — Copy and dump MongoDB collections from prod/dev to local
 
 ## Repository conventions
 

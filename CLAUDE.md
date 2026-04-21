@@ -19,17 +19,19 @@ A collection of small utility tools.
 - `mongo-update` — Update MongoDB documents with mandatory preview and confirmation; includes permission-aware workflow for portal users
 - `portal-user` — Look up portal users with full permission resolution (Users → PermissionUsers → PermissionAssignments → PermissionSets)
 - `grafana` — Connect to Grafana and query Grafana HTTP APIs
+- `mongo-sync` — Copy MongoDB collections from dev or prod to local with confirmation workflow
 
 ## Current skills
 
 - `firebase` — Firebase user management for lookup, listing, and profile or role updates
+- `mongo-sync` — Copy and dump MongoDB collections from prod/dev to local using sync-to-local.js
 
 ## Conventions
 
 - Firebase scripts support `--prod` flag to switch from dev to production environment
 - Firebase service account keys (`firebaseKey*`) are gitignored — never commit them
-- Mongo scripts support `--prod` flag to switch between dev/prod MongoDB URLs
-- Mongo connection URLs are stored in `mongo/.env` (gitignored — never commit it)
+- Mongo scripts support `--prod` / `--local` flags to switch between dev/prod/local MongoDB URLs
+- Mongo connection URLs are stored in `mongo/.env` as `MONGO_URL_DEV`, `MONGO_URL_LOCAL`, and `MONGO_URL_PROD` (gitignored — never commit it)
 - Scripts are designed to work both as CLI tools and as importable Node.js modules
 - Custom `.claude/commands/*.md` and `.claude/skills/*.md` files should use `{{REPO_ROOT}}` in executable paths; `setup.sh` replaces it with the actual repo path during installation
 - When a new `.claude` skill or command is added or an existing one is modified and the user approves it, update both `README.md` and `CLAUDE.md` to keep repo documentation aligned

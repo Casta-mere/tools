@@ -3,12 +3,25 @@ const path = require("path");
 require("dotenv").config({ path: path.join(__dirname, ".env") });
 
 const isProd = process.argv.includes("--prod");
-const MONGO_URL = isProd ? process.env.MONGO_URL_PROD : process.env.MONGO_URL_DEV;
+const isLocal = process.argv.includes("--local");
+
+if (isProd && isLocal) {
+  console.error("Error: --prod and --local cannot be used together.");
+  process.exit(1);
+}
+
+const MONGO_URL = isProd
+  ? process.env.MONGO_URL_PROD
+  : isLocal
+  ? process.env.MONGO_URL_LOCAL
+  : process.env.MONGO_URL_DEV;
 
 if (!MONGO_URL) {
   console.error(
     isProd
       ? "MONGO_URL_PROD is not set in mongo/.env"
+      : isLocal
+      ? "MONGO_URL_LOCAL is not set in mongo/.env"
       : "MONGO_URL_DEV is not set in mongo/.env"
   );
   process.exit(1);
@@ -62,6 +75,8 @@ async function listDatabases() {
 if (require.main === module) {
   if (isProd) {
     console.log("⚠ Using PROD MongoDB\n");
+  } else if (isLocal) {
+    console.log("⚠ Using LOCAL MongoDB\n");
   }
 
   listDatabases()
