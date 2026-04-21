@@ -98,3 +98,35 @@ The resolver returns JSON with `results[]`, each containing `user`, `permissionU
 If no results are found, say so clearly and suggest:
 1. Checking country-specific DBs (e.g. `SG_companyDB`, `ID_companyDB`) by running with `--db SG_companyDB` etc.
 2. Trying a different identifier type.
+
+---
+
+### Duplicate Users detection (phone and email lookups only)
+
+After displaying the result for a **phone** or **email** lookup, run an extra check for duplicate `Users` documents:
+
+```bash
+# For phone lookup:
+node {{REPO_ROOT}}/mongo/query.js [--prod] --db companyDB --collection Users --filter '{"phoneNumber": "<phone>"}'
+
+# For email lookup:
+node {{REPO_ROOT}}/mongo/query.js [--prod] --db companyDB --collection Users --filter '{"email": "<email>"}'
+```
+
+If more than one document is returned:
+
+1. Display a prominent warning:
+   ```
+   ⚠️  Duplicate Users detected for <phone/email>:
+   - <uid1> (displayName: "...", email: "...")  ← current Firebase owner (to be verified)
+   - <uid2> (displayName: "...", email: "...")  ← stale doc
+   ```
+
+2. Ask the user: **"Do you want to fix this with the Option A dedup workflow?"**
+
+3. If yes, invoke the `dedup-portal-user` skill to walk through:
+   - Identify current Firebase owner (Step 2)
+   - Back up affected docs (Step 3)
+   - Migrate `PermissionUsers.userId` to new UID (Step 4)
+   - Clear `phoneNumber` from old doc (Step 5)
+   - Verify the fix (Step 6)

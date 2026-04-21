@@ -86,6 +86,7 @@ Grafana connection utilities:
 
 - **firebase** — Firebase user management helpers for user lookup and updates
 - **mongo-sync** — Copy and dump MongoDB collections from prod/dev to local
+- **dedup-portal-user** — Option A fix for duplicate `companyDB.Users` docs caused by Firebase phone re-linking (back up → migrate PermissionUsers → clear stale phoneNumber → verify)
 
 ## Repository conventions
 

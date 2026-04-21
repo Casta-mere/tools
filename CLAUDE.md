@@ -25,6 +25,7 @@ A collection of small utility tools.
 
 - `firebase` — Firebase user management for lookup, listing, and profile or role updates
 - `mongo-sync` — Copy and dump MongoDB collections from prod/dev to local using sync-to-local.js
+- `dedup-portal-user` — Option A fix for duplicate `companyDB.Users` docs caused by Firebase phone re-linking: back up, migrate PermissionUsers.userId, clear stale phoneNumber
 
 ## Conventions
 
