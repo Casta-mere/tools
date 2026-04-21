@@ -138,30 +138,11 @@ async function resolvePortalUser(opts = {}) {
   // -----------------------------------------------------------------------
   let permissionUsers = [];
   let userDoc = null;
+  let duplicateUsers = null; // set when >1 Users doc shares the same phone/email
 
   if (opts.email) {
-    // Try Users collection first
-    userDoc = await usersCol.findOne({ email: opts.email });
-    if (userDoc) {
-      permissionUsers = await permUsersCol
-        .find({ userId: userDoc._id })
-        .toArray();
-      if (permissionUsers.length === 0) {
-        warnings.push(
-          `User found in Users (${userDoc._id}) but no PermissionUsers entry`
-        );
-        // Fallback: try PermissionUsers.email directly
-        permissionUsers = await permUsersCol
-          .find({ email: opts.email })
-          .toArray();
-        if (permissionUsers.length > 0) {
-          warnings.push(
-            "Found PermissionUsers by email directly (userId link mismatch)"
-          );
-        }
-      }
-    } else {
-      // No Users doc — try PermissionUsers.email directly
+    const allUserDocs = await usersCol.find({ email: opts.email }).toArray();
+    if (allUserDocs.length === 0) {
       permissionUsers = await permUsersCol
         .find({ email: opts.email })
         .toArray();
@@ -170,20 +151,44 @@ async function resolvePortalUser(opts = {}) {
           "No Users document found; PermissionUsers found by email directly"
         );
       }
-    }
-  } else if (opts.phone) {
-    userDoc = await usersCol.findOne({ phoneNumber: opts.phone });
-    if (userDoc) {
-      permissionUsers = await permUsersCol
-        .find({ userId: userDoc._id })
-        .toArray();
-      if (permissionUsers.length === 0) {
+    } else {
+      userDoc = allUserDocs[0];
+      if (allUserDocs.length > 1) {
+        duplicateUsers = allUserDocs;
         warnings.push(
-          `User found in Users (${userDoc._id}) but no PermissionUsers entry`
+          `Duplicate Users detected: ${allUserDocs.length} documents share email ${opts.email}`
         );
       }
-    } else {
-      // Try PermissionUsers.phoneNo
+      const uids = allUserDocs.map((u) => u._id);
+      permissionUsers = await permUsersCol
+        .find({ userId: { $in: uids } })
+        .toArray();
+      const uidsWithPU = new Set(permissionUsers.map((pu) => pu.userId));
+      for (const u of allUserDocs) {
+        if (!uidsWithPU.has(u._id)) {
+          warnings.push(
+            `User ${u._id} (${u.displayName || "no name"}) has no PermissionUsers entry`
+          );
+        }
+      }
+      // Fallback: if nothing found by userId, try by email directly
+      if (permissionUsers.length === 0) {
+        const puByEmail = await permUsersCol
+          .find({ email: opts.email })
+          .toArray();
+        if (puByEmail.length > 0) {
+          permissionUsers = puByEmail;
+          warnings.push(
+            "Found PermissionUsers by email directly (userId link mismatch)"
+          );
+        }
+      }
+    }
+  } else if (opts.phone) {
+    const allUserDocs = await usersCol
+      .find({ phoneNumber: opts.phone })
+      .toArray();
+    if (allUserDocs.length === 0) {
       permissionUsers = await permUsersCol
         .find({ phoneNo: opts.phone })
         .toArray();
@@ -191,6 +196,26 @@ async function resolvePortalUser(opts = {}) {
         warnings.push(
           "No Users document found; PermissionUsers found by phoneNo directly"
         );
+      }
+    } else {
+      userDoc = allUserDocs[0];
+      if (allUserDocs.length > 1) {
+        duplicateUsers = allUserDocs;
+        warnings.push(
+          `Duplicate Users detected: ${allUserDocs.length} documents share phone ${opts.phone}`
+        );
+      }
+      const uids = allUserDocs.map((u) => u._id);
+      permissionUsers = await permUsersCol
+        .find({ userId: { $in: uids } })
+        .toArray();
+      const uidsWithPU = new Set(permissionUsers.map((pu) => pu.userId));
+      for (const u of allUserDocs) {
+        if (!uidsWithPU.has(u._id)) {
+          warnings.push(
+            `User ${u._id} (${u.displayName || "no name"}) has no PermissionUsers entry`
+          );
+        }
       }
     }
   } else if (opts.userId) {
@@ -315,17 +340,22 @@ async function resolvePortalUser(opts = {}) {
     }
   }
 
-  // For business-level lookups, batch-fetch User docs for display names
+  // Build uid→userDoc map from already-fetched docs, then supplement for businessId
   let usersByUid = new Map();
-  if (opts.businessId && permissionUsers.length > 1) {
+  if (duplicateUsers) {
+    for (const u of duplicateUsers) usersByUid.set(u._id, u);
+  } else if (userDoc) {
+    usersByUid.set(userDoc._id, userDoc);
+  }
+  if (opts.businessId) {
     const uids = [
       ...new Set(permissionUsers.map((pu) => pu.userId).filter(Boolean)),
-    ];
+    ].filter((id) => !usersByUid.has(id));
     if (uids.length > 0) {
-      const userDocs = await usersCol.find({ _id: { $in: uids } }).toArray();
-      for (const u of userDocs) {
-        usersByUid.set(u._id, u);
-      }
+      const fetchedDocs = await usersCol
+        .find({ _id: { $in: uids } })
+        .toArray();
+      for (const u of fetchedDocs) usersByUid.set(u._id, u);
     }
   }
 
@@ -337,10 +367,8 @@ async function resolvePortalUser(opts = {}) {
     const assignment = assignmentByUserId.get(puId) || null;
 
     // Resolve linked User doc
-    let linkedUser = userDoc;
-    if (opts.businessId) {
-      linkedUser = usersByUid.get(pu.userId) || null;
-    } else if (!linkedUser && pu.userId) {
+    let linkedUser = usersByUid.get(pu.userId) || null;
+    if (!linkedUser && pu.userId) {
       linkedUser = await usersCol.findOne({ _id: pu.userId });
     }
 
@@ -439,6 +467,14 @@ async function resolvePortalUser(opts = {}) {
           phoneNumber: userDoc.phoneNumber,
         }
       : null,
+    duplicateUsers: duplicateUsers
+      ? duplicateUsers.map((u) => ({
+          _id: u._id,
+          displayName: u.displayName,
+          email: u.email,
+          phoneNumber: u.phoneNumber,
+        }))
+      : undefined,
     resultCount: results.length,
     results,
     warnings,

@@ -37,9 +37,28 @@ node {{REPO_ROOT}}/mongo/portal-user.js [--prod] --businessId <objectId> [--limi
 
 ### After fetching
 
-The resolver returns JSON with `results[]`, each containing `user`, `permissionUser`, `permissionAssignment`, `permissionSets`, `effectivePermissions`, `source`, and top-level `warnings[]`.
+The resolver returns JSON with `results[]`, each containing `user`, `permissionUser`, `permissionAssignment`, `permissionSets`, `effectivePermissions`, `source`, and top-level `warnings[]` and optional `duplicateUsers[]`.
 
-**For a single result (email, phone, or userId lookup):** render a multi-section layout:
+**If `duplicateUsers` is present** (phone or email lookup found multiple Users docs), show this FIRST:
+
+```
+⚠️  Duplicate Users detected for <phone/email> — N documents share this identifier:
+
+| userId | Display Name | Email | Has PermissionUsers? |
+|---|---|---|---|
+| `PqWe2Z...lu2` | — | — | No |
+| `KgwL8A...6r2` | — | — | No |
+| `K32Gpz...bt2` | Thomas | limthomas1116@gmail.com | Yes |
+```
+
+Then ask: **"Do you want to fix this with the Option A dedup workflow?"**
+- If yes, invoke the `dedup-portal-user` skill.
+
+Then continue rendering the permission results below.
+
+---
+
+**For a single result (no duplicates, email/phone/userId lookup):** render a multi-section layout:
 
 ```
 **Portal User: <email or displayName>**
@@ -72,7 +91,7 @@ The resolver returns JSON with `results[]`, each containing `user`, `permissionU
 - Use `_(denied)_` for inverted (denial) rules and note "(inverted)" in the Source column.
 - The `source` field at the top indicates the overall permission origin: `assignment+sets`, `sets`, `assignment`, `legacy(PermissionUsers.permissions)`, or `none`.
 
-**For multiple results (businessId lookup):** render a summary table:
+**For multiple results (businessId lookup, or phone/email with duplicates that each have PermissionUsers):** render a summary table:
 
 ```
 **N portal users for business `<businessId>`:**
@@ -89,44 +108,14 @@ The resolver returns JSON with `results[]`, each containing `user`, `permissionU
 - Effective Perms: count of `effectivePermissions`
 - Sets: comma-separated permission set names, or `—` if none
 
-**Warnings:** If the resolver returns any `warnings`, display them prominently:
+**Warnings:** Display any `warnings` from the output prominently (after the duplicate block if present):
 ```
 ⚠️ Warnings:
-- No Users document found; PermissionUsers found by email directly
+- User PqWe2Zy0W6g0HWcE51Y5AJFxv0h2 (no name) has no PermissionUsers entry
 ```
+
+Omit warnings that are already conveyed by the duplicate Users table above (e.g. "Duplicate Users detected: N documents share phone…") — those are implicit in the table.
 
 If no results are found, say so clearly and suggest:
 1. Checking country-specific DBs (e.g. `SG_companyDB`, `ID_companyDB`) by running with `--db SG_companyDB` etc.
 2. Trying a different identifier type.
-
----
-
-### Duplicate Users detection (phone and email lookups only)
-
-After displaying the result for a **phone** or **email** lookup, run an extra check for duplicate `Users` documents:
-
-```bash
-# For phone lookup:
-node {{REPO_ROOT}}/mongo/query.js [--prod] --db companyDB --collection Users --filter '{"phoneNumber": "<phone>"}'
-
-# For email lookup:
-node {{REPO_ROOT}}/mongo/query.js [--prod] --db companyDB --collection Users --filter '{"email": "<email>"}'
-```
-
-If more than one document is returned:
-
-1. Display a prominent warning:
-   ```
-   ⚠️  Duplicate Users detected for <phone/email>:
-   - <uid1> (displayName: "...", email: "...")  ← current Firebase owner (to be verified)
-   - <uid2> (displayName: "...", email: "...")  ← stale doc
-   ```
-
-2. Ask the user: **"Do you want to fix this with the Option A dedup workflow?"**
-
-3. If yes, invoke the `dedup-portal-user` skill to walk through:
-   - Identify current Firebase owner (Step 2)
-   - Back up affected docs (Step 3)
-   - Migrate `PermissionUsers.userId` to new UID (Step 4)
-   - Clear `phoneNumber` from old doc (Step 5)
-   - Verify the fix (Step 6)
