@@ -81,7 +81,32 @@ node /Users/wangxugang/Dev/tools/mongo/update.js [--prod] \
 
 > Note: `PermissionAssignments.userId` references the `PermissionUsers._id` (ObjectId), NOT the Firebase UID directly — so those records do NOT need updating.
 
-## Step 5 — Clear phoneNumber from old Users doc
+## Step 5 — Migrate profile fields to new Users doc
+
+Before clearing the old doc, compare its profile fields against the new doc. For any field that is populated in the old doc but null/missing/zero in the new doc, migrate the value across with `$set`.
+
+Fields to check: `displayName`, `email`, `birthday`, `birthdayCount`, `gender`, `photoURL`, `addresses`, `role`, and any other non-null user-facing fields.
+
+**Dry run:**
+```bash
+node /Users/wangxugang/Dev/tools/mongo/update.js [--prod] \
+  --db companyDB --collection Users \
+  --filter '{"_id": "<newUid>"}' \
+  --update '{"$set": {"displayName": "...", "email": "...", ...}}' \
+  --dry-run
+```
+
+**After user confirms, execute:**
+```bash
+node /Users/wangxugang/Dev/tools/mongo/update.js [--prod] \
+  --db companyDB --collection Users \
+  --filter '{"_id": "<newUid>"}' \
+  --update '{"$set": {"displayName": "...", "email": "...", ...}}'
+```
+
+Skip this step if the new doc already has all fields populated, or if the old doc has nothing to offer.
+
+## Step 6 — Clear phoneNumber from old Users doc
 
 **Dry run:**
 ```bash
@@ -100,7 +125,7 @@ node /Users/wangxugang/Dev/tools/mongo/update.js [--prod] \
   --update '{"$set": {"phoneNumber": null}, "$push": {"prevPhoneNumbers": "<phone>"}}'
 ```
 
-## Step 6 — Verify
+## Step 7 — Verify
 
 Re-run the portal user lookup to confirm the new UID now has permissions and the old doc has `phoneNumber: null`:
 
@@ -124,7 +149,8 @@ node /Users/wangxugang/Dev/tools/mongo/query.js [--prod] \
 ## Safety checklist
 
 - [ ] Backup created before any changes
-- [ ] Dry run reviewed for both updates
+- [ ] Dry run reviewed for all updates
 - [ ] User explicitly confirmed production changes
+- [ ] Profile fields from old doc migrated to new doc where new is null/missing
 - [ ] Verified new UID has permissions after fix
 - [ ] Verified old doc has `phoneNumber: null`
